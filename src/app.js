@@ -176,7 +176,9 @@ class TitanBot extends Client {
       const playerId = String(body.playerId || '').slice(0, 32);
       const detail = String(body.detail || '').slice(0, 1000);
       const externalId = String(body.externalId || '').slice(0, 100);
+      const allowedGuildId = String(process.env.RP_GUILD_ID || '');
       if (!allowedTypes.has(eventType) || !/^[0-9]{17,20}$/.test(String(body.guildId || '')) ||
+          !allowedGuildId || String(body.guildId) !== allowedGuildId ||
           !/^[0-9]{1,10}$/.test(playerId || '0')) {
         return res.status(400).json({ error: 'Invalid event payload' });
       }
