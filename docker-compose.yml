@@ -1,7 +1,7 @@
 services:
   bot:
     build: .
-    container_name: titanbot
+    container_name: boomerang-rp
     restart: unless-stopped
     env_file:
       - .env
@@ -35,13 +35,13 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - titan-network
+      - boomerang-rp-network
 
   lavalink:
     profiles:
       - local-lavalink
     image: ghcr.io/lavalink-devs/lavalink:4
-    container_name: titanbot-lavalink
+    container_name: boomerang-rp-lavalink
     restart: unless-stopped
     environment:
       - LAVALINK_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass}
@@ -52,7 +52,7 @@ services:
 
   db:
     image: postgres:15-alpine
-    container_name: titanbot-db
+    container_name: boomerang-rp-db
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-titanbot}
