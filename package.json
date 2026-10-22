@@ -1,7 +1,7 @@
 {
-  "name": "titanbot",
+  "name": "boomerang-rp",
   "version": "2.1.0",
-  "description": "Modular Ultimate Community Bot by Touchpoint Support",
+  "description": "Boomerang RP Discord bot, dashboard, PostgreSQL services, and FiveM bridge",
   "main": "src/app.js",
   "type": "module",
   "scripts": {
