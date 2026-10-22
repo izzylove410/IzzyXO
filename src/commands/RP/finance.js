@@ -26,7 +26,7 @@ export default {
     await c.query('UPDATE rp_finance_accounts SET balance=$3,updated_by=$4,updated_at=now() WHERE guild_id=$1 AND account_key=$2',[guild,k,next,actor]);
     await c.query('INSERT INTO rp_finance_ledger(guild_id,action,account_key,account_name,amount,actor_id,reason) VALUES($1,$2,$3,$4,$5,$6,$7)',[guild,sub,k,clean(name),amount,actor,reason]);return {old,next};
    });
-   await i.editReply({embeds:[emb('Finance ledger updated',`**Action:** ${sub}\n**Account:** ${clean(name)}\n**Change:** ${sub==="credit"?"+":"−"}${amount.toLocaleString()}\n**Balance:** ${result.old.toLocaleString()} → **${result.next.toLocaleString()}**\n**Reason:** ${reason},0x22c55e)]});return;
+   await i.editReply({embeds:[emb('Finance ledger updated',`**Action:** ${sub}\n**Account:** ${clean(name)}\n**Change:** ${sub==="credit"?"+":"−"}${amount.toLocaleString()}\n**Balance:** ${result.old.toLocaleString()} → **${result.next.toLocaleString()}**\n**Reason:** ${reason}`,0x22c55e)]});return;
   }
   if(sub==='transfer'){
    const from=i.options.getString('from'),to=i.options.getString('to'),fk=key(from),tk=key(to);if(!fk||!tk||fk===tk)throw new Error('Choose two different valid account names.');
