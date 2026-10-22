@@ -297,7 +297,7 @@ This repository now includes an initial Boomerang RP integration while preservin
 
 ### Configure the integration
 
-1. Set `RP_BRIDGE_SECRET` to a random secret of at least 32 characters and set `RP_LOG_CHANNEL_ID` to a Discord text channel ID. Keep the secret out of source control.
+1. Set `RP_BRIDGE_SECRET` to a random secret of at least 32 characters and set `RP_LOG_CHANNEL_ID` to a Discord text channel ID and `RP_GUILD_ID` to the Discord server ID allowed to send events. Keep the secret out of source control.
 2. Install the `fivem-resource/boomerang_bridge` folder in the FiveM server's resources directory and add `ensure boomerang_bridge` to `server.cfg`.
 3. Set these FiveM convars in `server.cfg`: `set boomerang_endpoint "https://YOUR-HOST/api/boomerang/events"`, `set boomerang_secret "SAME_SECRET"`, and `set boomerang_guild_id "YOUR_DISCORD_SERVER_ID"`.
 4. Run the normal project migration/startup path so the new tables are created. Verify `/health` and `/ready` before testing the bridge.
