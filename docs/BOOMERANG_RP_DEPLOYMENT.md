@@ -1,5 +1,34 @@
 # Boomerang RP deployment checklist (IzzyXO)
 
+## 0. Choose where the bot will run and create PostgreSQL
+
+The existing repository already includes Docker Compose with a persistent PostgreSQL service. If you have a computer or VPS that can stay online, this is the simplest self-hosted path:
+
+1. Install Docker Desktop (Windows/macOS) or Docker Engine + Compose (Linux).
+2. Copy `.env.example` to `.env`.
+3. Fill in the existing TitanBot values: `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID`.
+4. Set a unique strong `POSTGRES_PASSWORD` in `.env`. Do not leave the example password in place.
+5. Generate two different random secrets (PowerShell examples):
+
+```powershell
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+Put the first into `RP_BRIDGE_SECRET` and the second into `RP_DASHBOARD_TOKEN`. Set `RP_GUILD_ID` to your Discord server ID and `RP_LOG_CHANNEL_ID` to the channel where you want FiveM events logged. The `RP_PUBLIC_URL` must be the public HTTPS URL of the bot web server; do not leave the example URL.
+
+6. Start the existing bot and database together from the repository root:
+
+```powershell
+docker compose up -d --build
+docker compose ps
+docker compose logs -f bot
+```
+
+The Compose file keeps PostgreSQL data in the named `postgres_data` volume. Do not delete that volume if you want to keep your database. Keep `.env` private and out of GitHub.
+
+If you don't have an always-on computer/VPS, use a managed host such as Railway instead: create a service from the existing GitHub repository and a PostgreSQL database, then copy the provider's private database connection URL into `POSTGRES_URL` (or `DATABASE_URL`) and add the same RP variables in the service's environment settings. Do not publish the database URL or any secrets.
+
 This integration lives in the existing TitanBot/IzzyXO application. Do not create a second bot deployment for Boomerang RP.
 
 ## 1. Bot host environment
