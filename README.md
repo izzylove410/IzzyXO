@@ -291,15 +291,18 @@ Thank you for choosing TitanBot for your Discord server! We're constantly workin
 This repository now includes an initial Boomerang RP integration while preserving TitanBot's existing commands and systems:
 
 - `/rp-cargo add`, `remove`, `transfer`, `check`, and `history` provide a PostgreSQL-backed cargo ledger with transactional balance changes and an append-only action history.
+- `/rp-staff set`, `remove`, and `list` maintain a persistent staff roster with rank, status, and internal notes.
+- `/rp-finance credit`, `debit`, `transfer`, `balance`, and `history` manage community/business accounts with a transactional, audited ledger.
+- `/boomerang` opens the operations dashboard; the read-only `/api/boomerang/dashboard` endpoint requires a separate `RP_DASHBOARD_TOKEN`.
 - `POST /api/boomerang/events` accepts timestamped FiveM bridge events using a shared bearer secret, persists them, and optionally posts embeds to `RP_LOG_CHANNEL_ID`.
 - `fivem-resource/boomerang_bridge` forwards player connect/disconnect events and exposes a generic `RecordServerEvent` export for framework-specific adapters.
 - Schema creation is added to the project's existing shared PostgreSQL schema and migration flow.
 
 ### Configure the integration
 
-1. Set `RP_BRIDGE_SECRET` to a random secret of at least 32 characters and set `RP_LOG_CHANNEL_ID` to a Discord text channel ID and `RP_GUILD_ID` to the Discord server ID allowed to send events. Keep the secret out of source control.
+1. Set `RP_BRIDGE_SECRET` to a random secret of at least 32 characters, `RP_DASHBOARD_TOKEN` to a different random secret of at least 32 characters, `RP_LOG_CHANNEL_ID` to a Discord text channel ID, and `RP_GUILD_ID` to the Discord server ID allowed to send events. Keep all secrets out of source control.
 2. Install the `fivem-resource/boomerang_bridge` folder in the FiveM server's resources directory and add `ensure boomerang_bridge` to `server.cfg`.
 3. Set these FiveM convars in `server.cfg`: `set boomerang_endpoint "https://YOUR-HOST/api/boomerang/events"`, `set boomerang_secret "SAME_SECRET"`, and `set boomerang_guild_id "YOUR_DISCORD_SERVER_ID"`.
 4. Run the normal project migration/startup path so the new tables are created. Verify `/health` and `/ready` before testing the bridge.
 
-**Scope note:** this is an initial integration, not a complete FiveM framework adapter. It logs connect/disconnect events and provides an export for your framework's jobs, inventory, vehicles, economy, and admin resources to call. Tebex verification, dashboard UI/RBAC, deployment, and live end-to-end tests are not included in this transfer.
+**Scope note:** this remains an in-progress integration. The dashboard currently provides read-only Discord health, FiveM event history, and cargo balances; `/rp-staff` and `/rp-finance` provide persistent staff and business-account management. Framework-specific job, inventory, vehicle, in-game cash synchronization, Tebex verification, dashboard user accounts/RBAC, deployment, and live end-to-end tests still require additional work.
