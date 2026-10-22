@@ -235,13 +235,16 @@ class TitanBot extends Client {
         }
         const guildId = String(process.env.RP_GUILD_ID || '');
         if (!/^[0-9]{17,20}$/.test(guildId)) return res.status(503).json({ error: 'RP_GUILD_ID is not configured' });
-        const [events, cargo, totals, discord] = await Promise.all([
+        const [events, cargo, totals, staff, finance, financeTotals, discord] = await Promise.all([
           pgDb.pool.query('SELECT id,event_type,player_name,player_id,detail,external_id,occurred_at FROM rp_server_events WHERE guild_id=$1 ORDER BY id DESC LIMIT 40', [guildId]),
           pgDb.pool.query('SELECT account_name,item_name,quantity,updated_at FROM rp_cargo_balances WHERE guild_id=$1 AND quantity>0 ORDER BY account_name,item_name LIMIT 100', [guildId]),
           pgDb.pool.query("SELECT COUNT(*)::int AS total_events, COUNT(*) FILTER (WHERE event_type='playerConnecting')::int AS joins, COUNT(*) FILTER (WHERE event_type='playerDropped')::int AS leaves, COUNT(*) FILTER (WHERE event_type='server_event')::int AS server_events FROM rp_server_events WHERE guild_id=$1", [guildId]),
+          pgDb.pool.query('SELECT user_id,staff_rank,staff_status,notes,updated_at FROM rp_staff_roster WHERE guild_id=$1 ORDER BY CASE staff_status WHEN \'active\' THEN 1 WHEN \'loa\' THEN 2 ELSE 3 END,staff_rank LIMIT 30', [guildId]),
+          pgDb.pool.query('SELECT account_name,balance,updated_at FROM rp_finance_accounts WHERE guild_id=$1 ORDER BY account_name LIMIT 40', [guildId]),
+          pgDb.pool.query('SELECT COUNT(*)::int AS account_count, COALESCE(SUM(balance),0)::text AS total_balance FROM rp_finance_accounts WHERE guild_id=$1', [guildId]),
           Promise.resolve({ guilds: this.guilds.cache.size, commands: this.commands.size, online: this.isReady() })
         ]);
-        return res.json({ ok:true, generatedAt:new Date().toISOString(), discord, totals:totals.rows[0], events:events.rows, cargo:cargo.rows });
+        return res.json({ ok:true, generatedAt:new Date().toISOString(), discord, totals:totals.rows[0], events:events.rows, cargo:cargo.rows, staff:staff.rows, finance:finance.rows, financeTotals:financeTotals.rows[0] });
       } catch (error) {
         logger.error('Boomerang RP dashboard read failed', { message:error.message });
         return res.status(500).json({ error:'Dashboard data could not be loaded' });
