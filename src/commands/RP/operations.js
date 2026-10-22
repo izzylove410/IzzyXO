@@ -71,6 +71,7 @@ export default {
                 const itemKey = keyOf(item);
                 if (!accountKey || !itemKey) throw new Error('Account and item names are required.');
                 const result = await withTransaction(async client => {
+                    await client.query('INSERT INTO rp_cargo_balances(guild_id,account_key,item_key,account_name,item_name,quantity,updated_by) VALUES($1,$2,$3,$4,$5,0,$6) ON CONFLICT(guild_id,account_key,item_key) DO NOTHING',[guildId,accountKey,itemKey,cleanLabel(account),cleanLabel(item),actorId]);
                     const current = await client.query(
                         'SELECT quantity FROM rp_cargo_balances WHERE guild_id=$1 AND account_key=$2 AND item_key=$3 FOR UPDATE',
                         [guildId, accountKey, itemKey]
