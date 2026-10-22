@@ -11,6 +11,16 @@ import { pgConfig } from '../../config/database/postgres.js';
 const t = pgConfig.tables;
 
 export const tableStatements = [
+    `CREATE TABLE IF NOT EXISTS rp_staff_audit (
+        id BIGSERIAL PRIMARY KEY,
+        guild_id VARCHAR(20) NOT NULL,
+        action VARCHAR(20) NOT NULL,
+        target_user_id VARCHAR(20) NOT NULL,
+        actor_id VARCHAR(20) NOT NULL,
+        details VARCHAR(1000) NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     `CREATE TABLE IF NOT EXISTS rp_staff_roster (
         guild_id VARCHAR(20) NOT NULL,
         user_id VARCHAR(20) NOT NULL,
