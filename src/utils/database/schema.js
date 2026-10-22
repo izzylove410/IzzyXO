@@ -11,6 +11,39 @@ import { pgConfig } from '../../config/database/postgres.js';
 const t = pgConfig.tables;
 
 export const tableStatements = [
+    `CREATE TABLE IF NOT EXISTS rp_staff_roster (
+        guild_id VARCHAR(20) NOT NULL,
+        user_id VARCHAR(20) NOT NULL,
+        staff_rank VARCHAR(50) NOT NULL DEFAULT 'Staff',
+        staff_status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (staff_status IN ('active','loa','suspended')),
+        notes TEXT NOT NULL DEFAULT '',
+        updated_by VARCHAR(20),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (guild_id,user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS rp_finance_accounts (
+        guild_id VARCHAR(20) NOT NULL,
+        account_key VARCHAR(100) NOT NULL,
+        account_name VARCHAR(100) NOT NULL,
+        balance BIGINT NOT NULL DEFAULT 0 CHECK (balance >= 0),
+        updated_by VARCHAR(20),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (guild_id,account_key)
+    )`,
+    `CREATE TABLE IF NOT EXISTS rp_finance_ledger (
+        id BIGSERIAL PRIMARY KEY,
+        guild_id VARCHAR(20) NOT NULL,
+        action VARCHAR(20) NOT NULL CHECK (action IN ('credit','debit','transfer')),
+        account_key VARCHAR(100) NOT NULL,
+        account_name VARCHAR(100) NOT NULL,
+        to_account_key VARCHAR(100),
+        to_account_name VARCHAR(100),
+        amount BIGINT NOT NULL CHECK (amount > 0),
+        actor_id VARCHAR(20) NOT NULL,
+        reason VARCHAR(250) NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     `CREATE TABLE IF NOT EXISTS rp_server_events (
         id BIGSERIAL PRIMARY KEY,
         guild_id VARCHAR(20) NOT NULL,
