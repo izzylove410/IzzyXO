@@ -11,6 +11,33 @@ import { pgConfig } from '../../config/database/postgres.js';
 const t = pgConfig.tables;
 
 export const tableStatements = [
+    `CREATE TABLE IF NOT EXISTS rp_cargo_balances (
+        guild_id VARCHAR(20) NOT NULL,
+        account_key VARCHAR(100) NOT NULL,
+        item_key VARCHAR(100) NOT NULL,
+        account_name VARCHAR(100) NOT NULL,
+        item_name VARCHAR(100) NOT NULL,
+        quantity BIGINT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+        updated_by VARCHAR(20),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (guild_id, account_key, item_key)
+    )`,
+    `CREATE TABLE IF NOT EXISTS rp_cargo_ledger (
+        id BIGSERIAL PRIMARY KEY,
+        guild_id VARCHAR(20) NOT NULL,
+        action VARCHAR(20) NOT NULL CHECK (action IN ('add','remove','transfer')),
+        account_key VARCHAR(100) NOT NULL,
+        account_name VARCHAR(100) NOT NULL,
+        to_account_key VARCHAR(100),
+        to_account_name VARCHAR(100),
+        item_key VARCHAR(100) NOT NULL,
+        item_name VARCHAR(100) NOT NULL,
+        quantity BIGINT NOT NULL CHECK (quantity > 0),
+        actor_id VARCHAR(20) NOT NULL,
+        reason VARCHAR(250) NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     `CREATE TABLE IF NOT EXISTS ${t.guilds} (
         id VARCHAR(20) PRIMARY KEY,
         config JSONB DEFAULT '{}',
