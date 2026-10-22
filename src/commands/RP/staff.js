@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
-import { pgDb } from '../../utils/database.js';
+import { pgDb } from '../../utils/postgresDatabase.js';
 
 const clean = (v, n=250) => String(v ?? '').trim().replace(/[\r\n\t]/g, ' ').slice(0,n);
 const embed = (title, description, color=0x8b5cf6) => new EmbedBuilder().setTitle(title).setDescription(description).setColor(color).setTimestamp();
