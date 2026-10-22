@@ -212,6 +212,42 @@ class TitanBot extends Client {
       }
     });
 
+    // Boomerang RP operations dashboard (read-only API; separate secret from FiveM bridge).
+    const dashboardAuth = (req, res, next) => {
+      const expected = process.env.RP_DASHBOARD_TOKEN || '';
+      const supplied = String(req.headers.authorization || '').replace(/^Bearer\\s+/i, '');
+      if (expected.length < 32 || supplied.length !== expected.length ||
+          !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) {
+        return res.status(401).json({ error: 'Dashboard authorization required' });
+      }
+      next();
+    };
+
+    app.get('/boomerang', (req, res) => {
+      res.sendFile(new URL('../public/boomerang-dashboard.html', import.meta.url).pathname);
+    });
+
+    app.get('/api/boomerang/dashboard', dashboardAuth, async (req, res) => {
+      try {
+        const { pgDb } = await import('./utils/database.js');
+        if (!pgDb.isAvailable() || !pgDb.pool || this.db?.getStatus?.().isDegraded) {
+          return res.status(503).json({ error: 'Persistent database unavailable' });
+        }
+        const guildId = String(process.env.RP_GUILD_ID || '');
+        if (!/^[0-9]{17,20}$/.test(guildId)) return res.status(503).json({ error: 'RP_GUILD_ID is not configured' });
+        const [events, cargo, totals, discord] = await Promise.all([
+          pgDb.pool.query('SELECT id,event_type,player_name,player_id,detail,external_id,occurred_at FROM rp_server_events WHERE guild_id=$1 ORDER BY id DESC LIMIT 40', [guildId]),
+          pgDb.pool.query('SELECT account_name,item_name,quantity,updated_at FROM rp_cargo_balances WHERE guild_id=$1 AND quantity>0 ORDER BY account_name,item_name LIMIT 100', [guildId]),
+          pgDb.pool.query("SELECT COUNT(*)::int AS total_events, COUNT(*) FILTER (WHERE event_type='playerConnecting')::int AS joins, COUNT(*) FILTER (WHERE event_type='playerDropped')::int AS leaves, COUNT(*) FILTER (WHERE event_type='server_event')::int AS server_events FROM rp_server_events WHERE guild_id=$1", [guildId]),
+          Promise.resolve({ guilds: this.guilds.cache.size, commands: this.commands.size, online: this.isReady() })
+        ]);
+        return res.json({ ok:true, generatedAt:new Date().toISOString(), discord, totals:totals.rows[0], events:events.rows, cargo:cargo.rows });
+      } catch (error) {
+        logger.error('Boomerang RP dashboard read failed', { message:error.message });
+        return res.status(500).json({ error:'Dashboard data could not be loaded' });
+      }
+    });
+
     app.get('/health', (req, res) => {
       const dbStatus = this.db?.getStatus?.() || { isDegraded: 'unknown' };
       const status = {
