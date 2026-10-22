@@ -38,7 +38,7 @@ export default {
     await c.query('INSERT INTO rp_finance_ledger(guild_id,action,account_key,account_name,to_account_key,to_account_name,amount,actor_id,reason) VALUES($1,\'transfer\',$2,$3,$4,$5,$6,$7,$8)',[guild,fk,clean(from),tk,clean(to),amount,actor,reason]);
     const dest=await c.query('SELECT balance FROM rp_finance_accounts WHERE guild_id=$1 AND account_key=$2',[guild,tk]);return {from:Number(source.rows[0].balance)-amount,to:Number(dest.rows[0].balance)};
    });
-   await i.editReply({embeds:[emb('Funds transferred',`**Amount:** ${amount.toLocaleString()}\n**From:** ${clean(from)} · balance ${result.from.toLocaleString()}\n**To:** ${clean(to)} · balance ${result.to.toLocaleString()}\n**Reason:** ${reason},0x22c55e)]});return;
+   await i.editReply({embeds:[emb('Funds transferred',`**Amount:** ${amount.toLocaleString()}\n**From:** ${clean(from)} · balance ${result.from.toLocaleString()}\n**To:** ${clean(to)} · balance ${result.to.toLocaleString()}\n**Reason:** ${reason}`,0x22c55e)]});return;
   }
   if(sub==='balance'){
    const name=i.options.getString('account');
