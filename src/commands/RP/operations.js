@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
-import { pgDb } from '../../utils/database.js';
+import { pgDb } from '../../utils/postgresDatabase.js';
 
 const cleanLabel = (value, max = 80) => String(value ?? '').trim().replace(/[\r\n\t]/g, ' ').slice(0, max);
 const keyOf = (value) => cleanLabel(value, 80).toLowerCase().replace(/\s+/g, '-');
