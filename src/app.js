@@ -215,7 +215,7 @@ class TitanBot extends Client {
     // Boomerang RP operations dashboard (read-only API; separate secret from FiveM bridge).
     const dashboardAuth = (req, res, next) => {
       const expected = process.env.RP_DASHBOARD_TOKEN || '';
-      const supplied = String(req.headers.authorization || '').replace(/^Bearer\\s+/i, '');
+      const supplied = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
       if (expected.length < 32 || supplied.length !== expected.length ||
           !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) {
         return res.status(401).json({ error: 'Dashboard authorization required' });
