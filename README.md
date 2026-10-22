@@ -293,14 +293,14 @@ This repository now includes an initial Boomerang RP integration while preservin
 - `/rp-cargo add`, `remove`, `transfer`, `check`, and `history` provide a PostgreSQL-backed cargo ledger with transactional balance changes and an append-only action history.
 - `/rp-staff set`, `remove`, and `list` maintain a persistent staff roster with rank, status, and internal notes.
 - `/rp-finance credit`, `debit`, `transfer`, `balance`, and `history` manage community/business accounts with a transactional, audited ledger.
-- `/boomerang` opens the operations dashboard; the read-only `/api/boomerang/dashboard` endpoint requires a separate `RP_DASHBOARD_TOKEN`.
+- `/boomerang-dashboard` returns the dashboard link; the web page is served at `/boomerang` on the deployed host, and the read-only `/api/boomerang/dashboard` endpoint requires a separate `RP_DASHBOARD_TOKEN`.
 - `POST /api/boomerang/events` accepts timestamped FiveM bridge events using a shared bearer secret, persists them, and optionally posts embeds to `RP_LOG_CHANNEL_ID`.
 - `fivem-resource/boomerang_bridge` forwards player connect/disconnect events and exposes a generic `RecordServerEvent` export for framework-specific adapters.
 - Schema creation is added to the project's existing shared PostgreSQL schema and migration flow.
 
 ### Configure the integration
 
-1. Set `RP_BRIDGE_SECRET` to a random secret of at least 32 characters, `RP_DASHBOARD_TOKEN` to a different random secret of at least 32 characters, `RP_LOG_CHANNEL_ID` to a Discord text channel ID, and `RP_GUILD_ID` to the Discord server ID allowed to send events. Keep all secrets out of source control.
+1. Set `RP_BRIDGE_SECRET` to a random secret of at least 32 characters, `RP_DASHBOARD_TOKEN` to a different random secret of at least 32 characters, `RP_LOG_CHANNEL_ID` to a Discord text channel ID, `RP_GUILD_ID` to the Discord server ID allowed to send events, and `RP_PUBLIC_URL` to the deployed HTTPS base URL. Keep all secrets out of source control.
 2. Install the `fivem-resource/boomerang_bridge` folder in the FiveM server's resources directory and add `ensure boomerang_bridge` to `server.cfg`.
 3. Set these FiveM convars in `server.cfg`: `set boomerang_endpoint "https://YOUR-HOST/api/boomerang/events"`, `set boomerang_secret "SAME_SECRET"`, and `set boomerang_guild_id "YOUR_DISCORD_SERVER_ID"`.
 4. Run the normal project migration/startup path so the new tables are created. Verify `/health` and `/ready` before testing the bridge.
