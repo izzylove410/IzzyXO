@@ -186,7 +186,7 @@ class TitanBot extends Client {
         if (!this.db || this.db.getStatus?.().isDegraded) {
           return res.status(503).json({ error: 'Persistent database unavailable' });
         }
-        const { pgDb } = await import('./utils/database.js');
+        const { pgDb } = await import('./utils/postgresDatabase.js');
         if (!pgDb.isAvailable() || !pgDb.pool) return res.status(503).json({ error: 'PostgreSQL unavailable' });
         const inserted = await pgDb.pool.query(
           'INSERT INTO rp_server_events(guild_id,event_type,player_name,player_id,detail,external_id,occurred_at) VALUES($1,$2,$3,$4,$5,$6,to_timestamp($7 / 1000.0)) RETURNING id',
