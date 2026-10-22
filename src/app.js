@@ -1,4 +1,5 @@
 ﻿import 'dotenv/config';
+import { timingSafeEqual } from 'node:crypto';
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import express from 'express';
@@ -154,6 +155,59 @@ class TitanBot extends Client {
       times.push(now);
       requestCounts.set(ip, times);
       next();
+    });
+
+    // Boomerang RP FiveM bridge. Configure RP_BRIDGE_SECRET and RP_LOG_CHANNEL_ID.
+    app.post('/api/boomerang/events', express.json({ limit: '16kb' }), async (req, res) => {
+      const expected = process.env.RP_BRIDGE_SECRET || '';
+      const supplied = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      const timestamp = Number(req.headers['x-rp-timestamp']);
+      if (expected.length < 32 || supplied.length !== expected.length ||
+          !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > 120000) {
+        return res.status(401).json({ error: 'Expired or missing timestamp' });
+      }
+      const body = req.body || {};
+      const allowedTypes = new Set(['playerConnecting', 'playerDropped', 'server_event']);
+      const eventType = String(body.type || '');
+      const playerName = String(body.playerName || 'Unknown player').slice(0, 100);
+      const playerId = String(body.playerId || '').slice(0, 32);
+      const detail = String(body.detail || '').slice(0, 1000);
+      const externalId = String(body.externalId || '').slice(0, 100);
+      if (!allowedTypes.has(eventType) || !/^[0-9]{17,20}$/.test(String(body.guildId || '')) ||
+          !/^[0-9]{1,10}$/.test(playerId || '0')) {
+        return res.status(400).json({ error: 'Invalid event payload' });
+      }
+      try {
+        if (!this.db || this.db.getStatus?.().isDegraded) {
+          return res.status(503).json({ error: 'Persistent database unavailable' });
+        }
+        const { pgDb } = await import('./utils/database.js');
+        if (!pgDb.isAvailable() || !pgDb.pool) return res.status(503).json({ error: 'PostgreSQL unavailable' });
+        const inserted = await pgDb.pool.query(
+          'INSERT INTO rp_server_events(guild_id,event_type,player_name,player_id,detail,external_id,occurred_at) VALUES($1,$2,$3,$4,$5,$6,to_timestamp($7 / 1000.0)) RETURNING id',
+          [String(body.guildId), eventType, playerName, playerId, detail, externalId, Number(body.timestamp) || timestamp]
+        );
+        const channelId = process.env.RP_LOG_CHANNEL_ID;
+        if (channelId && this.isReady()) {
+          const channel = await this.channels.fetch(channelId).catch(() => null);
+          if (channel?.isTextBased()) {
+            const { EmbedBuilder } = await import('discord.js');
+            await channel.send({ embeds: [new EmbedBuilder()
+              .setColor(eventType === 'playerDropped' ? 0x95A5A6 : 0x3498DB)
+              .setTitle('Boomerang RP • FiveM Event')
+              .setDescription(`**Event:** ${eventType}\n**Player:** ${playerName}\n**Server ID:** ${playerId || 'N/A'}${detail ? `\n**Details:** ${detail}` : ''}`)
+              .setFooter({ text: `Event #${inserted.rows[0].id}` })
+              .setTimestamp(new Date(Number(body.timestamp) || Date.now()) )] }).catch(error => logger.warn('Boomerang RP log delivery failed', { message: error.message }));
+          }
+        }
+        return res.status(202).json({ accepted: true, eventId: inserted.rows[0].id });
+      } catch (error) {
+        logger.error('Boomerang RP bridge event failed', { message: error.message });
+        return res.status(500).json({ error: 'Event could not be stored' });
+      }
     });
 
     app.get('/health', (req, res) => {
