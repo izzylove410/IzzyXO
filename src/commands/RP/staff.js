@@ -45,7 +45,7 @@ export default {
       }
       if(sub==='history') {
         const history=await pgDb.pool.query('SELECT action,target_user_id,actor_id,details,created_at FROM rp_staff_audit WHERE guild_id=$1 ORDER BY id DESC LIMIT 15',[guild]);
-        const desc=history.rows.length?history.rows.map(r=>`• **${r.action.toUpperCase()}** <@${r.target_user_id}> by <@${r.actor_id}>\n  ${clean(r.details,120)} · <t:${Math.floor(new Date(r.created_at).getTime()/1000)}:R>`).join('\\n'):'No staff changes recorded yet.';
+        const desc=history.rows.length?history.rows.map(r=>`• **${r.action.toUpperCase()}** <@${r.target_user_id}> by <@${r.actor_id}>\n  ${clean(r.details,120)} · <t:${Math.floor(new Date(r.created_at).getTime()/1000)}:R>`).join('\n'):'No staff changes recorded yet.';
         await interaction.editReply({embeds:[embed('Boomerang RP • Staff audit history',desc)]});
         return;
       }
